@@ -62,3 +62,24 @@ The following environment variables provide configuration to EDCM:
 | `EMBY_TOKEN`                   | `N/A`                | `True`   |
 | `EDCM_SCAN_INTERVAL` (seconds) | `600`                | `False`  |
 | `EDCM_USE_SSL`                 | `False`              | `False`  |
+
+## Creating Collection Rules
+
+1. Find the config.ini
+2. Update the config to match your desired collections. For example:
+
+```ini
+[Highly Rated HBO Series]
+Type=Series
+Studios = HBO
+MinCommunityRating = 8
+
+[Comedies]
+Genres = comedy
+```
+
+This example config has 2 collections, Highly Rated HBO Series and Comedies.
+
+Highly Rated HBO Series will contain and HBO TV show with a rating of 8.0 and above, whilst the Comedies collection will contain any TV Show or Movie that is tagged as a comedy by genre.
+
+For a full list of supported rules, see the [official Get Items Swagger documentation](https://swagger.emby.media/?staticview=true#/ItemsService/getItems)
