@@ -10,6 +10,23 @@ __version__ = "0.1.0-Alpha1"
 
 
 def app():
+    logger.info("Starting EDCM")
+
+    CONFIG_PATH = os.getenv("EDCM_CONFIG_PATH", "/config/config.ini")
+    EDCM_DEBUG = os.getenv("EDCM_DEBUG", False)
+    DEBUG = True if EDCM_DEBUG != False else False
+    EMBY_ADDRESS = os.getenv("EMBY_ADDRESS")
+    EMBY_PORT = int(os.getenv("EMBY_PORT", 8096))
+    EMBY_TOKEN = os.getenv("EMBY_TOKEN")
+    SCAN_INTERVAL = int(os.getenv("EDCM_SCAN_INTERVAL", 600))  # seconds
+    USE_SSL = os.getenv("EDCM_USE_SSL", False)
+    HTTPS = "https" if USE_SSL != False else "http"
+
+    logger.success("Imported environment variables")
+
+    def debug(message, debug=DEBUG):
+        if debug is True:
+            logger.debug(message)
 
     def load_config():
         try:
@@ -19,20 +36,8 @@ def app():
                 f"Found collection rule sets: {', '.join(collection_rule_sets)}"
             )
         except:
-            logger.error("Failed to read config file.")
+            logger.error("Failed to read config file. Exiting.")
             sys.exit(1)
-
-    logger.info("Starting EDCM")
-
-    CONFIG_PATH = os.getenv("EDCM_CONFIG_PATH", "/config/config.ini")
-    EMBY_ADDRESS = os.getenv("EMBY_ADDRESS")
-    EMBY_PORT = int(os.getenv("EMBY_PORT", 8096))
-    EMBY_TOKEN = os.getenv("EMBY_TOKEN")
-    SCAN_INTERVAL = int(os.getenv("EDCM_SCAN_INTERVAL", 600))  # seconds
-    USE_SSL = os.getenv("EDCM_USE_SSL", False)
-    HTTPS = "https" if USE_SSL != False else "http"
-
-    logger.success("Imported environment variables")
 
     if not os.path.exists(CONFIG_PATH):
         logger.warning(
@@ -68,6 +73,8 @@ def app():
 
         for key, value in config.items(section):
             params[key] = value
+
+        debug(f"Rule set: {params}")
 
         for library in libraries:
             params["ParentId"] = library["Id"]
