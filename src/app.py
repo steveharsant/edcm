@@ -6,7 +6,7 @@ import time
 from api import *
 import os
 
-__version__ = "0.0.1"
+__version__ = "0.1.0-Alpha1"
 
 
 def app():
@@ -76,11 +76,21 @@ def app():
 
             logger.info(f"Found {len(response)} matching items in {library['Name']}")
 
-        # Add to collection here:
-        results_id_string = ",".join([result["Id"] for result in results])
-        response = emby_api.Collections(
-            params={"Name": section, "Ids": results_id_string}
-        )
+        start_index = 0
+        batch_counter = 1
+        batch_size = 50
+        ids = [result["Id"] for result in results]
+        total_batches = max(1, len(ids) // batch_size)
+
+        while start_index < len(ids):
+            end_index = min(start_index + batch_size, len(ids))
+            batch = ",".join(ids[start_index:end_index])
+
+            logger.info(f"Processing batch {batch_counter} of {total_batches}")
+            emby_api.Collections(params={"Name": section, "Ids": batch})
+
+            start_index += batch_size
+            batch_counter += 1
 
         logger.success(f"Updated {section} collection")
 
