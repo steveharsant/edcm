@@ -4,109 +4,61 @@ import sys
 from loguru import logger
 import time
 from api import *
+from variables import *
+from functions import *
 import os
+
 
 __version__ = "0.1.0-Alpha1"
 
 
-def app():
-    logger.info("Starting EDCM")
+def main():
 
-    CONFIG_PATH = os.getenv("EDCM_CONFIG_PATH", "/config/config.ini")
-    EDCM_DEBUG = os.getenv("EDCM_DEBUG", False)
-    DEBUG = True if EDCM_DEBUG != False else False
-    EMBY_ADDRESS = os.getenv("EMBY_ADDRESS")
-    EMBY_PORT = int(os.getenv("EMBY_PORT", 8096))
-    EMBY_TOKEN = os.getenv("EMBY_TOKEN")
-    SCAN_INTERVAL = int(os.getenv("EDCM_SCAN_INTERVAL", 600))  # seconds
-    USE_SSL = os.getenv("EDCM_USE_SSL", False)
-    HTTPS = "https" if USE_SSL != False else "http"
+    if len(config.sections()) < 1:
+        logger.warning("No rule sets found")
+        return
 
-    logger.success("Imported environment variables")
-
-    def debug(message, debug=DEBUG):
-        if debug is True:
-            logger.debug(message)
-
-    def load_config():
-        try:
-            config.read(CONFIG_PATH)
-            collection_rule_sets = [section for section in config.sections()]
-            logger.success(
-                f"Found collection rule sets: {', '.join(collection_rule_sets)}"
-            )
-        except:
-            logger.error("Failed to read config file. Exiting.")
-            sys.exit(1)
-
-    if not os.path.exists(CONFIG_PATH):
-        logger.warning(
-            f"Config file not found at {CONFIG_PATH}. Generating config file"
-        )
-
-        with open(f"{os.path.dirname(__file__)}/config.ini.tmpl", "r") as f:
-            config_template = f.read()
-
-        try:
-            with open(CONFIG_PATH, "w") as f:
-                f.write(config_template)
-        except:
-            logger.error("Failed to create config file. Is the path writable? Exiting")
-            sys.exit(1)
-
-    config = configparser.ConfigParser()
-    load_config()
-
-    emby_api = api(
-        base_url=f"{HTTPS}://{EMBY_ADDRESS}:{EMBY_PORT}", api_token=EMBY_TOKEN
-    )
-
+    logger.info("Requesting library information")
     libraries = emby_api.Libraries()
-    library_names = [library["Name"] for library in libraries]
-    logger.success(f"Found libraries: {', '.join(library_names)}")
+    libraries = [i for i in libraries if i.get("Name") != "Collections"]
 
-    for section in config.sections():
-        logger.info(f"Processing '{section}' collection rule set")
+    for rule_set in config.sections():
+        logger.info(f"Processing '{rule_set}' collection rule set")
 
-        params = {}
+        if len(config.items(rule_set)) < 1:
+            logger.warning(f"No rules found in rule set '{rule_set}'")
+            continue
+
+        rules = determine_rule_type(config.items(rule_set))
         results = []
 
-        for key, value in config.items(section):
-            params[key] = value
-
-        debug(f"Rule set: {params}")
-
         for library in libraries:
-            params["ParentId"] = library["Id"]
-            response = emby_api.Items(params=params)
-            results.extend(response)
+            response = emby_api.LibraryContent(
+                library_id=library["Id"], params=rules["params"]
+            )
 
-            logger.info(f"Found {len(response)} matching items in {library['Name']}")
+            content = []
+            for item in response:
+                content.append(map_content_data(item))
 
-        start_index = 0
-        batch_counter = 1
-        batch_size = 50
-        ids = [result["Id"] for result in results]
-        total_batches = max(1, len(ids) // batch_size)
+            for item in content:
+                if determine_match(item, rules["filters"]):
+                    results.append(item)
 
-        while start_index < len(ids):
-            end_index = min(start_index + batch_size, len(ids))
-            batch = ",".join(ids[start_index:end_index])
+        logger.success(f"Processed matches. {len(results)} matches found")
 
-            logger.info(f"Processing batch {batch_counter} of {total_batches}")
-            emby_api.Collections(params={"Name": section, "Ids": batch})
-
-            start_index += batch_size
-            batch_counter += 1
-
-        logger.success(f"Updated {section} collection")
+        ids = [result["id"] for result in results]
+        if emby_api.update_collection(rule_set, ids):
+            logger.success(f"Updated '{rule_set}' collection")
 
     logger.success(f"Collection update complete")
-    logger.info(f"Next run in {SCAN_INTERVAL} seconds")
-    time.sleep(SCAN_INTERVAL)
-    load_config()
 
 
 if __name__ == "__main__":
+    logger.info("Starting EDCM")
+
     while True:
-        app()
+        load_config()
+        main()
+        logger.info(f"Next run in {SCAN_INTERVAL} seconds")
+        time.sleep(SCAN_INTERVAL)
