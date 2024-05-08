@@ -9,9 +9,6 @@ def debug(message, debug=DEBUG):
         logger.debug(message)
 
 
-config = configparser.ConfigParser()
-
-
 def determine_match(item, rule_set, rules):
     match = True
     for key, value in rules.items():
