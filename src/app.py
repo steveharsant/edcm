@@ -1,12 +1,9 @@
-import configparser
-import os
-import sys
 from loguru import logger
 import time
 from api import *
 from variables import *
 from functions import *
-import os
+from watcher import *
 
 
 __version__ = "0.2.0"
@@ -57,8 +54,20 @@ def main():
 if __name__ == "__main__":
     logger.info("Starting EDCM")
 
+    file_changed_event = register_config_watcher()
+    logger.success("Config watcher registered")
+
     while True:
+        file_changed_event.clear()
+
         load_config()
         main()
+
         logger.info(f"Next run in {SCAN_INTERVAL} seconds")
-        time.sleep(SCAN_INTERVAL)
+
+        for i in range(SCAN_INTERVAL // 3):
+            if file_changed_event.is_set():
+                logger.info("Collections rule set change detected. Processing rules")
+                break
+
+            time.sleep(3)
