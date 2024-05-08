@@ -34,12 +34,6 @@ class api:
 
         return self._send_request("Items", method=method, params=params)
 
-    def Collections(self, method="POST", params=None):
-
-        return self._send_request(
-            "Collections", method=method, params=params, stripItems=False
-        )
-
     def update_collection(self, name, ids):
         start_index = 0
         batch_counter = 1

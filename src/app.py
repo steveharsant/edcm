@@ -42,7 +42,7 @@ def main():
                 content.append(map_content_data(item))
 
             for item in content:
-                if determine_match(item, rules["filters"]):
+                if determine_match(item, rule_set, rules["filters"]):
                     results.append(item)
 
         logger.success(f"Processed matches. {len(results)} matches found")

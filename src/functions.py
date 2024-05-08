@@ -12,11 +12,15 @@ def debug(message, debug=DEBUG):
 config = configparser.ConfigParser()
 
 
-def determine_match(item, rule_set):
+def determine_match(item, rule_set, rules):
     match = True
-    for key, value in rule_set.items():
-        if value not in item[key]:
-            match = False
+    for key, value in rules.items():
+        try:
+            if value not in item[key]:
+                match = False
+        except:
+            logger.error(f"Rule '{key}' in rule set '{rule_set}' is invalid")
+            sys.exit(1)
 
     return match
 
