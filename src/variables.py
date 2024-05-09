@@ -13,6 +13,8 @@ HTTPS = "https" if USE_SSL != False else "http"
 
 emby_api = api(base_url=f"{HTTPS}://{EMBY_ADDRESS}:{EMBY_PORT}", api_token=EMBY_TOKEN)
 
+config_behaviour_rules = ["DryRun", "Description"]
+
 items_param_rules = [
     "AdjacentTo",
     "AiredDuringSeason",

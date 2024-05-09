@@ -1,18 +1,15 @@
-import configparser
-import os
-import sys
 from loguru import logger
 import time
 from api import *
 from variables import *
 from functions import *
-import os
+from watcher import *
+import configparser
+
+__version__ = "0.2.0"
 
 
-__version__ = "0.1.0-Alpha1"
-
-
-def main():
+def main(config):
 
     if len(config.sections()) < 1:
         logger.warning("No rule sets found")
@@ -45,11 +42,16 @@ def main():
                 if determine_match(item, rule_set, rules["filters"]):
                     results.append(item)
 
-        logger.success(f"Processed matches. {len(results)} matches found")
+        logger.success(f"Processed items. {len(results)} matches found")
 
-        ids = [result["id"] for result in results]
-        if emby_api.update_collection(rule_set, ids):
-            logger.success(f"Updated '{rule_set}' collection")
+        if rules["behaviour"].get("dryrun", "false").lower() == "true":
+            logger.warning(f"Dry run enabled for '{rule_set}' rule set. Match results:")
+            for result in results:
+                logger.info(result["name"][0])
+        else:
+            ids = [result["id"] for result in results]
+            if emby_api.update_collection(rule_set, ids):
+                logger.success(f"Updated '{rule_set}' collection")
 
     logger.success(f"Collection update complete")
 
@@ -57,8 +59,27 @@ def main():
 if __name__ == "__main__":
     logger.info("Starting EDCM")
 
-    while True:
-        load_config()
-        main()
-        logger.info(f"Next run in {SCAN_INTERVAL} seconds")
-        time.sleep(SCAN_INTERVAL)
+    file_changed_event = register_config_watcher()
+    logger.success("Config watcher registered")
+
+    try:
+        while True:
+            file_changed_event.clear()
+
+            config = load_config()
+            main(config)
+
+            logger.info(f"Next run in {SCAN_INTERVAL} seconds")
+
+            for i in range(SCAN_INTERVAL // 3):
+                if file_changed_event.is_set():
+                    logger.info(
+                        "Collections rule set change detected. Processing rules"
+                    )
+
+                    break
+
+                time.sleep(3)
+    except KeyboardInterrupt:
+        logger.info("EDCM has been requested to exit. Exiting")
+        sys.exit(0)
