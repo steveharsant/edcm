@@ -8,6 +8,7 @@
 
 ## Coming Soon(tm)
 
+- Dry run
 - Compare items in collection and remove them from items to add with POST request.
 - UI (?)
 - Jellyfin support

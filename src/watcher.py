@@ -13,8 +13,6 @@ def config_watcher():
     while True:
         this_mtime = os.path.getmtime(CONFIG_PATH)
         if this_mtime > last_mtime:
-            print("File changed")
-            load_config()
             file_changed_event.set()
             last_mtime = this_mtime
 

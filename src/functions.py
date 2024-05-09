@@ -1,7 +1,8 @@
 from loguru import logger
-import configparser
 from variables import *
 import sys
+import fnmatch
+import configparser
 
 
 def debug(message, debug=DEBUG):
@@ -13,11 +14,12 @@ def determine_match(item, rule_set, rules):
     match = True
     for key, value in rules.items():
         try:
-            if value not in item[key]:
+            if not fnmatch.fnmatch(item[key][0], value):
                 match = False
         except:
-            logger.error(f"Rule '{key}' in rule set '{rule_set}' is invalid")
-            sys.exit(1)
+            logger.error(
+                f"Rule '{key}' in rule set '{rule_set}' is invalid. Skipping rule"
+            )
 
     return match
 
@@ -49,6 +51,7 @@ def load_config():
             logger.error("Failed to create config file. Is the path writable? Exiting")
             sys.exit(1)
     try:
+        config = configparser.ConfigParser()
         config.read(CONFIG_PATH)
         collection_rule_sets = [section for section in config.sections()]
         logger.success(f"Found collection rule sets: {', '.join(collection_rule_sets)}")
@@ -56,6 +59,8 @@ def load_config():
     except:
         logger.error("Failed to read config file. Exiting.")
         sys.exit(1)
+
+    return config
 
 
 def map_content_data(item):

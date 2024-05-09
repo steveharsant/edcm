@@ -1,6 +1,5 @@
 import os
 from api import *
-import configparser
 
 CONFIG_PATH = os.getenv("EDCM_CONFIG_PATH", "/config/config.ini")
 EDCM_DEBUG = os.getenv("EDCM_DEBUG", False)
@@ -12,7 +11,6 @@ SCAN_INTERVAL = int(os.getenv("EDCM_SCAN_INTERVAL", 600))  # seconds
 USE_SSL = os.getenv("EDCM_USE_SSL", False)
 HTTPS = "https" if USE_SSL != False else "http"
 
-config = configparser.ConfigParser()
 emby_api = api(base_url=f"{HTTPS}://{EMBY_ADDRESS}:{EMBY_PORT}", api_token=EMBY_TOKEN)
 
 items_param_rules = [

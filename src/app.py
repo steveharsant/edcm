@@ -4,12 +4,12 @@ from api import *
 from variables import *
 from functions import *
 from watcher import *
-
+import configparser
 
 __version__ = "0.2.0"
 
 
-def main():
+def main(config):
 
     if len(config.sections()) < 1:
         logger.warning("No rule sets found")
@@ -61,8 +61,9 @@ if __name__ == "__main__":
         while True:
             file_changed_event.clear()
 
-            load_config()
-            main()
+            config = load_config()
+            main(config)
+            # config = configparser.ConfigParser()
 
             logger.info(f"Next run in {SCAN_INTERVAL} seconds")
 
