@@ -42,11 +42,16 @@ def main(config):
                 if determine_match(item, rule_set, rules["filters"]):
                     results.append(item)
 
-        logger.success(f"Processed matches. {len(results)} matches found")
+        logger.success(f"Processed items. {len(results)} matches found")
 
-        ids = [result["id"] for result in results]
-        if emby_api.update_collection(rule_set, ids):
-            logger.success(f"Updated '{rule_set}' collection")
+        if rules["behaviour"].get("dryrun", "false").lower() == "true":
+            logger.warning(f"Dry run enabled for '{rule_set}' rule set. Match results:")
+            for result in results:
+                logger.info(result["name"][0])
+        else:
+            ids = [result["id"] for result in results]
+            if emby_api.update_collection(rule_set, ids):
+                logger.success(f"Updated '{rule_set}' collection")
 
     logger.success(f"Collection update complete")
 
@@ -63,7 +68,6 @@ if __name__ == "__main__":
 
             config = load_config()
             main(config)
-            # config = configparser.ConfigParser()
 
             logger.info(f"Next run in {SCAN_INTERVAL} seconds")
 

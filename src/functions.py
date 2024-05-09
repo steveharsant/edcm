@@ -25,10 +25,12 @@ def determine_match(item, rule_set, rules):
 
 
 def determine_rule_type(rule_set):
-    rules = {"params": {}, "filters": {}}
+    rules = {"params": {}, "filters": {}, "behaviour": {}}
     for key, value in rule_set:
         if key.lower() in [item.lower() for item in items_param_rules]:
             rules["params"][key] = value
+        elif key.lower() in [item.lower() for item in config_behaviour_rules]:
+            rules["behaviour"][key] = value
         else:
             rules["filters"][key] = value
 
