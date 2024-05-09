@@ -57,17 +57,24 @@ if __name__ == "__main__":
     file_changed_event = register_config_watcher()
     logger.success("Config watcher registered")
 
-    while True:
-        file_changed_event.clear()
+    try:
+        while True:
+            file_changed_event.clear()
 
-        load_config()
-        main()
+            load_config()
+            main()
 
-        logger.info(f"Next run in {SCAN_INTERVAL} seconds")
+            logger.info(f"Next run in {SCAN_INTERVAL} seconds")
 
-        for i in range(SCAN_INTERVAL // 3):
-            if file_changed_event.is_set():
-                logger.info("Collections rule set change detected. Processing rules")
-                break
+            for i in range(SCAN_INTERVAL // 3):
+                if file_changed_event.is_set():
+                    logger.info(
+                        "Collections rule set change detected. Processing rules"
+                    )
 
-            time.sleep(3)
+                    break
+
+                time.sleep(3)
+    except KeyboardInterrupt:
+        logger.info("EDCM has been requested to exit. Exiting")
+        sys.exit(0)

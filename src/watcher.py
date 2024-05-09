@@ -23,5 +23,6 @@ def config_watcher():
 
 def register_config_watcher():
     watcher_thread = threading.Thread(target=config_watcher)
+    watcher_thread.daemon = True
     watcher_thread.start()
     return file_changed_event
