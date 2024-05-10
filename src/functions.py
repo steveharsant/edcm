@@ -13,14 +13,16 @@ def debug(message, debug=DEBUG):
 def determine_match(item, rule_set, rules):
     match = True
     for key, value in rules.items():
-        try:
-            if not fnmatch.fnmatch(item[key][0], value):
-                match = False
-        except:
-            logger.error(
-                f"Rule '{key}' in rule set '{rule_set}' is invalid. Skipping rule"
-            )
-
+        if key in item and item[key]:
+            try:
+                if not fnmatch.fnmatch(item[key][0], value):
+                    match = False
+            except:
+                logger.error(
+                    f"Rule '{key}' in rule set '{rule_set}' is invalid. Skipping rule"
+                )
+        else:
+            match = False
     return match
 
 
