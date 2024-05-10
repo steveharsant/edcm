@@ -6,7 +6,7 @@ from functions import *
 from watcher import *
 import configparser
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 def main(config):
