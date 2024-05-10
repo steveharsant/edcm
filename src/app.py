@@ -4,7 +4,6 @@ from api import *
 from variables import *
 from functions import *
 from watcher import *
-import configparser
 
 __version__ = "0.2.1"
 
