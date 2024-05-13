@@ -10,22 +10,6 @@ def debug(message, debug=DEBUG):
         logger.debug(message)
 
 
-def determine_match(item, rule_set, rules):
-    match = True
-    for key, value in rules.items():
-        if key in item and item[key]:
-            try:
-                if not fnmatch.fnmatch(item[key][0], value):
-                    match = False
-            except:
-                logger.error(
-                    f"Rule '{key}' in rule set '{rule_set}' is invalid. Skipping rule"
-                )
-        else:
-            match = False
-    return match
-
-
 def determine_rule_type(rule_set):
     rules = {"params": {}, "filters": {}, "behaviour": {}}
     for key, value in rule_set:
@@ -82,8 +66,8 @@ def map_content_data(item):
     entry["parentid"] = [item.get("ParentId", "")]
     entry["type"] = [item.get("Type", "")]
     entry["enddate"] = [item.get("EndDate", "")]
-    entry["genres"] = [item.get("Genres", "")]
+    entry["genres"] = item.get("Genres", "")
     entry["people"] = [person["Name"] for person in item.get("People", "")]
-    entry["studios"] = [person["Name"] for person in item.get("Studios", "")]
+    entry["studios"] = [studio["Name"] for studio in item.get("Studios", [])]
 
     return entry

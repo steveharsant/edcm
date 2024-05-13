@@ -41,7 +41,9 @@ class api:
         total_batches = max(1, len(ids) // batch_size)
 
         while start_index < len(ids):
-            logger.debug(f"Processing batch {batch_counter} of {total_batches}")
+            if DEBUG is True:
+                logger.debug(f"Processing batch {batch_counter} of {total_batches}")
+
             end_index = min(start_index + batch_size, len(ids))
             batch = ",".join(ids[start_index:end_index])
 

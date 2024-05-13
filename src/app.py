@@ -4,6 +4,7 @@ from api import *
 from variables import *
 from functions import *
 from watcher import *
+import matcher
 
 __version__ = "0.2.1"
 
@@ -26,6 +27,7 @@ def main(config):
             continue
 
         rules = determine_rule_type(config.items(rule_set))
+        match_type = rules["behaviour"].get("matchtype", "all").lower()
         results = []
 
         for library in libraries:
@@ -38,8 +40,23 @@ def main(config):
                 content.append(map_content_data(item))
 
             for item in content:
-                if determine_match(item, rule_set, rules["filters"]):
-                    results.append(item)
+                if match_type == "all":
+                    if matcher.all(item, rules["filters"]):
+                        results.append(item)
+
+                elif match_type == "any":
+                    if matcher.any(item, rules["filters"]):
+                        results.append(item)
+
+                else:
+                    logger.warning(
+                        f"Unable to determine MatchType from value '{match_type}'. Defaulting to 'all'"
+                    )
+                    if matcher.all(item, rules["filters"]):
+                        results.append(item)
+
+                # if determine_match(item, rule_set, rules["filters"]):
+                #     results.append(item)
 
         logger.success(f"Processed items. {len(results)} matches found")
 

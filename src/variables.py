@@ -1,6 +1,7 @@
 import os
 from api import *
 
+
 CONFIG_PATH = os.getenv("EDCM_CONFIG_PATH", "/config/config.ini")
 EDCM_DEBUG = os.getenv("EDCM_DEBUG", False)
 DEBUG = True if EDCM_DEBUG not in (False, 0, "False", "false") else False
@@ -11,7 +12,7 @@ SCAN_INTERVAL = int(os.getenv("EDCM_SCAN_INTERVAL", 600))  # seconds
 USE_SSL = os.getenv("EDCM_USE_SSL", False)
 HTTPS = "https" if USE_SSL != False else "http"
 
-
+# Cannot use debug function in functions.py here
 if DEBUG is True:
     logger.debug(f"CONFIG_PATH set to: {CONFIG_PATH}")
     logger.debug(f"EDCM_DEBUG set to: {EDCM_DEBUG}. Debug messages on is {DEBUG}")
@@ -23,7 +24,7 @@ if DEBUG is True:
 
 emby_api = api(base_url=f"{HTTPS}://{EMBY_ADDRESS}:{EMBY_PORT}", api_token=EMBY_TOKEN)
 
-config_behaviour_rules = ["DryRun", "Description"]
+config_behaviour_rules = ["DryRun", "Description", "MatchType"]
 
 items_param_rules = [
     "AdjacentTo",
