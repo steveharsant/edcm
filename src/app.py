@@ -19,7 +19,8 @@ def main(collections, preferences):
 
     logger.info("Requesting library information")
     libraries = emby_api.Libraries()
-    libraries = [i for i in libraries if i.get("Name") != "Collections"]
+    # libraries = [i for i in libraries if i.get("Name") != "Collections"]
+    libraries = config.exclude_libraries(libraries, preferences["excludedlibraries"])
 
     for rule_set in collections.sections():
         logger.info(f"Processing '{rule_set}' collection rule set")

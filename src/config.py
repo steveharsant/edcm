@@ -47,3 +47,13 @@ def load():
     debug(f"User config: {preferences}")
 
     return collections, preferences
+
+
+def exclude_libraries(libraries, excluded_libraries):
+    excluded_libraries = excluded_libraries.split(",")
+    excluded_libraries.append("Collections")
+    for lib in excluded_libraries:
+        libraries = [i for i in libraries if i.get("Name") != lib.strip()]
+        debug(f"Excluded library '{lib.strip()}'")
+
+    return libraries

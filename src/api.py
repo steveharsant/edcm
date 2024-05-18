@@ -1,3 +1,4 @@
+import os
 import requests
 from loguru import logger
 
@@ -38,13 +39,16 @@ class api:
         start_index = 0
         batch_counter = 1
         batch_size = 50
-        total_batches = max(1, len(ids) // batch_size)
 
+        DEBUG = os.getenv("EDCM_DEBUG", False)
         while start_index < len(ids):
-            if DEBUG is True:
-                logger.debug(f"Processing batch {batch_counter} of {total_batches}")
-
             end_index = min(start_index + batch_size, len(ids))
+
+            if DEBUG is not False:
+                logger.debug(
+                    f"Processing matches {start_index} to {end_index} (of {len(ids)})"
+                )
+
             batch = ",".join(ids[start_index:end_index])
 
             self._send_request(
