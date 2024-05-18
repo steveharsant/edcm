@@ -1,8 +1,5 @@
 from loguru import logger
 from variables import *
-import sys
-import fnmatch
-import configparser
 
 
 def debug(message, debug=DEBUG):
@@ -23,40 +20,12 @@ def determine_rule_type(rule_set):
     return rules
 
 
-def load_config():
-    if not os.path.exists(CONFIG_PATH):
-        logger.warning(
-            f"Config file not found at {CONFIG_PATH}. Generating config file"
-        )
-
-        with open(f"{os.path.dirname(__file__)}/config.ini.tmpl", "r") as f:
-            config_template = f.read()
-
-        try:
-            with open(CONFIG_PATH, "w") as f:
-                f.write(config_template)
-        except:
-            logger.error("Failed to create config file. Is the path writable? Exiting")
-            sys.exit(1)
-    try:
-        config = configparser.ConfigParser()
-        config.read(CONFIG_PATH)
-        collection_rule_sets = [section for section in config.sections()]
-        logger.success(f"Found collection rule sets: {', '.join(collection_rule_sets)}")
-
-    except:
-        logger.error("Failed to read config file. Exiting.")
-        sys.exit(1)
-
-    return config
-
-
 def map_content_data(item):
 
     entry = {}
 
     # Keys must be in lower case
-    # Wrap all items in a list for more simple iterative processing
+    # Ensure all items are wrapped in a list for more simple iterative processing
     entry["name"] = [item.get("Name", "")]
     entry["id"] = item.get("Id", "")
     entry["datecreated"] = [item.get("DateCreated", "")]

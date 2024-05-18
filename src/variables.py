@@ -5,7 +5,7 @@ from api import *
 CONFIG_PATH = os.getenv("EDCM_CONFIG_PATH", "/config/config.ini")
 EDCM_DEBUG = os.getenv("EDCM_DEBUG", False)
 DEBUG = True if EDCM_DEBUG not in (False, 0, "False", "false") else False
-EMBY_ADDRESS = os.getenv("EMBY_ADDRESS")
+EMBY_ADDRESS = os.getenv("EMBY_ADDRESS").replace("https://", "").replace("http://", "")
 EMBY_PORT = int(os.getenv("EMBY_PORT", 8096))
 EMBY_TOKEN = os.getenv("EMBY_TOKEN")
 SCAN_INTERVAL = int(os.getenv("EDCM_SCAN_INTERVAL", 600))  # seconds

@@ -1,7 +1,6 @@
 import os
 import time
 import threading
-from functions import load_config
 from variables import *
 
 file_changed_event = threading.Event()
