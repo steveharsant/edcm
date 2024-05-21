@@ -1,29 +1,10 @@
 from loguru import logger
 from variables import *
-import sys
-import fnmatch
-import configparser
 
 
 def debug(message, debug=DEBUG):
     if debug is True:
         logger.debug(message)
-
-
-def determine_match(item, rule_set, rules):
-    match = True
-    for key, value in rules.items():
-        if key in item and item[key]:
-            try:
-                if not fnmatch.fnmatch(item[key][0], value):
-                    match = False
-            except:
-                logger.error(
-                    f"Rule '{key}' in rule set '{rule_set}' is invalid. Skipping rule"
-                )
-        else:
-            match = False
-    return match
 
 
 def determine_rule_type(rule_set):
@@ -39,40 +20,12 @@ def determine_rule_type(rule_set):
     return rules
 
 
-def load_config():
-    if not os.path.exists(CONFIG_PATH):
-        logger.warning(
-            f"Config file not found at {CONFIG_PATH}. Generating config file"
-        )
-
-        with open(f"{os.path.dirname(__file__)}/config.ini.tmpl", "r") as f:
-            config_template = f.read()
-
-        try:
-            with open(CONFIG_PATH, "w") as f:
-                f.write(config_template)
-        except:
-            logger.error("Failed to create config file. Is the path writable? Exiting")
-            sys.exit(1)
-    try:
-        config = configparser.ConfigParser()
-        config.read(CONFIG_PATH)
-        collection_rule_sets = [section for section in config.sections()]
-        logger.success(f"Found collection rule sets: {', '.join(collection_rule_sets)}")
-
-    except:
-        logger.error("Failed to read config file. Exiting.")
-        sys.exit(1)
-
-    return config
-
-
 def map_content_data(item):
 
     entry = {}
 
     # Keys must be in lower case
-    # Wrap all items in a list for more simple iterative processing
+    # Ensure all items are wrapped in a list for more simple iterative processing
     entry["name"] = [item.get("Name", "")]
     entry["id"] = item.get("Id", "")
     entry["datecreated"] = [item.get("DateCreated", "")]
@@ -82,8 +35,8 @@ def map_content_data(item):
     entry["parentid"] = [item.get("ParentId", "")]
     entry["type"] = [item.get("Type", "")]
     entry["enddate"] = [item.get("EndDate", "")]
-    entry["genres"] = [item.get("Genres", "")]
+    entry["genres"] = item.get("Genres", "")
     entry["people"] = [person["Name"] for person in item.get("People", "")]
-    entry["studios"] = [person["Name"] for person in item.get("Studios", "")]
+    entry["studios"] = [studio["Name"] for studio in item.get("Studios", [])]
 
     return entry

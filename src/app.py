@@ -1,32 +1,36 @@
-from loguru import logger
-import time
 from api import *
-from variables import *
 from functions import *
+from loguru import logger
+from variables import *
 from watcher import *
-import configparser
+import config
+import matcher
+import sys
+import time
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 
-def main(config):
+def main(collections, preferences):
 
-    if len(config.sections()) < 1:
+    if len(collections.sections()) < 1:
         logger.warning("No rule sets found")
         return
 
     logger.info("Requesting library information")
     libraries = emby_api.Libraries()
-    libraries = [i for i in libraries if i.get("Name") != "Collections"]
+    # libraries = [i for i in libraries if i.get("Name") != "Collections"]
+    libraries = config.exclude_libraries(libraries, preferences["excludedlibraries"])
 
-    for rule_set in config.sections():
+    for rule_set in collections.sections():
         logger.info(f"Processing '{rule_set}' collection rule set")
 
-        if len(config.items(rule_set)) < 1:
+        if len(collections.items(rule_set)) < 1:
             logger.warning(f"No rules found in rule set '{rule_set}'")
             continue
 
-        rules = determine_rule_type(config.items(rule_set))
+        rules = determine_rule_type(collections.items(rule_set))
+        match_type = rules["behaviour"].get("matchtype", "all").lower()
         results = []
 
         for library in libraries:
@@ -39,8 +43,20 @@ def main(config):
                 content.append(map_content_data(item))
 
             for item in content:
-                if determine_match(item, rule_set, rules["filters"]):
-                    results.append(item)
+                if match_type == "all":
+                    if matcher.all(item, rules["filters"]):
+                        results.append(item)
+
+                elif match_type == "any":
+                    if matcher.any(item, rules["filters"]):
+                        results.append(item)
+
+                else:
+                    logger.warning(
+                        f"Unable to determine MatchType from value '{match_type}'. Defaulting to 'all'"
+                    )
+                    if matcher.all(item, rules["filters"]):
+                        results.append(item)
 
         logger.success(f"Processed items. {len(results)} matches found")
 
@@ -66,8 +82,8 @@ if __name__ == "__main__":
         while True:
             file_changed_event.clear()
 
-            config = load_config()
-            main(config)
+            collections, preferences = config.load()
+            main(collections, preferences)
 
             logger.info(f"Next run in {SCAN_INTERVAL} seconds")
 
